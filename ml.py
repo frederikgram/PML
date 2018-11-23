@@ -2,45 +2,12 @@ from collections import Counter
 import operator
 
 import distances
+import base_models
+
 
 #  TODO fill out docstrings
 
-
-class Model:
-    """Base class for ML models, this contains various functions with wide use cases"""
-
-    def test_train_split(self, X: list, y: list, ratio: float=0.8) -> list:
-        """
-
-        :param X:
-        :param y:
-        :param ratio:
-        :return:
-        """
-
-        test_X, train_X = X[:int(len(X) * ratio)], X[int(len(X) * ratio):]
-        test_y, train_y = y[:int(len(y) * ratio)], y[int(len(y) * ratio):]
-
-        return test_X, train_X, test_y, train_y
-
-    @property
-    def accuracy(self):
-        """
-
-        :return:
-        """
-        pass
-
-    @property
-    def sensitivity(self):
-        """
-
-        :return:
-        """
-        pass
-
-
-class k_nearest_neighbor(Model):
+class k_nearest_neighbor(base_models.Classifier):
     """ K-nearest neighbors ML model"""
 
     def __init__(self):
@@ -88,7 +55,13 @@ class k_nearest_neighbor(Model):
 
 
 MODEL = k_nearest_neighbor()
-MODEL.fit([1.2, 1.1, 1.5, 1.6], ['a', 'a', 'b', 'b'])
-print(MODEL.predict(1.3))
-print(MODEL.test_train_split([1.2, 1.1, 1.5, 1.6], ['a', 'a', 'b', 'b']))
+
+X, y = MODEL.generate_random_dataset(10, 4)
+test_X, train_X, test_y, train_y = MODEL.test_train_split(X, y)
+
+MODEL.fit(train_X, train_y)
+
+for entry in zip(test_X, test_y):
+    prediction = MODEL.predict(entry[0])
+    print("Prediction: {prediction}\nlabel: {label}\n".format(prediction=prediction, label=entry[1]))
 # >> b'
