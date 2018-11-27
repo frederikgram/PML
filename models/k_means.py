@@ -28,9 +28,9 @@ class k_means(base_models.Cluster):
             knn.fit(centroids, range(0, n_clusters))
 
             X_without_centroids = [x for x in X if x not in centroids]
-            predictions = [knn.predict(x, k=1) for x in X_without_centroids]
+            predictions: list[int] = [knn.predict(x, k=1) for x in X_without_centroids]
 
-            X_with_predictions = zip(X_without_centroids, predictions)
+            X_with_predictions: list[tuple] = zip(X_without_centroids, predictions)
 
             # Calculate new centroids
             new_centroids = []
@@ -45,7 +45,7 @@ class k_means(base_models.Cluster):
             centroids = new_centroids
 
         # predict cluster labels using stabilized centroids
-        cluster_predictions = [knn.predict(x) for x in X]
+        cluster_predictions: list[int] = [knn.predict(x) for x in X]
         return cluster_predictions
 
 
