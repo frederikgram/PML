@@ -16,9 +16,13 @@ class Kmeans(base_models.Cluster):
         """
 
         if random_seed is not None:
-            random.seed = random_seed
+            try:
+                random.seed = random_seed
+            except TypeError:
+                print("{seed} is not a valid random.seed seed".format(seed=random_seed))
+                raise
 
-        knn = k_nearest_neighbor.k_nearest_neighbor()
+        knn = k_nearest_neighbor.KNearestNeighbor()
 
         # Set initial centroids
         centroids = random.sample(X, n_clusters)
@@ -52,7 +56,7 @@ class Kmeans(base_models.Cluster):
 
 
 if __name__ == "__main__":
-    """ Run test """
+    """ Run example """
 
     model = Kmeans()
     X = [1.0, 2.0, 3.0, 10.0, 11.0, 12.0, 20.0, 21.0, 22.0]

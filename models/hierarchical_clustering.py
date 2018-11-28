@@ -1,5 +1,4 @@
 from models import base_models
-from tools import distances
 
 
 class HierarchicalClustering(base_models.Cluster):
@@ -25,9 +24,9 @@ class HierarchicalClustering(base_models.Cluster):
         for point_a in a:
             for point_b in b:
 
-                difference = point_a - point_b
+                difference = abs(point_a - point_b)
 
-                if difference < min_distance or min_distance is None:
+                if min_distance is None or difference < min_distance:
                     min_distance = difference
 
         return min_distance
@@ -40,10 +39,7 @@ class HierarchicalClustering(base_models.Cluster):
         :param b: List of cluster values
         """
 
-        if len(a) != len(b):
-            raise ValueError("Lists have to be of equal length")
-
-        return sum(a) - sum(b) / len(a)
+        return abs((sum(a) / len(a)) - (sum(b) / len(b)))
 
     @staticmethod
     def complete_linkage_distance(a: list, b: list) -> float:
@@ -58,7 +54,7 @@ class HierarchicalClustering(base_models.Cluster):
         for point_a in a:
             for point_b in b:
 
-                difference = point_a - point_b
+                difference = abs(point_a - point_b)
 
                 if max_distance is None or difference > max_distance:
                     max_distance = difference
@@ -69,11 +65,11 @@ class HierarchicalClustering(base_models.Cluster):
 class HAC(HierarchicalClustering):
     """ Hierarchical agglomerative clustering ML model"""
 
-    def predict(self, X: list, n_clusters: int, linkage: str="average") -> list:
+    def predict(self, X: list, n_clusters: int=2, linkage: str="average") -> list:
         """
 
         :param X: List of data
-        :param n_clusters: Amount of clusters to split the data into
+        :param n_clusters: Amount of clusters to split the data into (DEFAULT VALUE = 2)
         :param linkage: What to calculate distance from (single = distance between the closest points of clusters,
                                                         average = distance between the average point of clusters,
                                                        complete = distance between the two farthest points of clusters)
@@ -87,42 +83,54 @@ class HAC(HierarchicalClustering):
             raise ValueError("linkage type {0} is not a supported linkage criteria".format(linkage))
 
         # Set each data point in X to be its own cluster
-        # Clusters are formatted as tuple(X[n], int(cluster_label))
-        clusters: list[tuple] = [(x, enum) for enum, x in enumerate(X)]
-        print(clusters)
+        # Clusters are formatted as tuple(list(X[n]), int(cluster_label))
+        clusters: list[tuple] = [([x], enum) for enum, x in enumerate(X)]
 
         # Begin agglomeration
         while True:
 
             min_difference = None
-            new_cluster = None
+            clusters_to_merge = None
 
+            # Find which clusters are the best to merge based on linkage criteria
             for cluster_a in clusters:
                 for cluster_b in [cluster for cluster in clusters if cluster != cluster_a]:
-                    difference = _linkage_function(cluster_a, cluster_b)
-                    if min_difference is None or difference < min_difference:
-                        min_difference = difference
-                        new_cluster = (cluster_a, cluster_b)
 
-            new_clusters = [cluster for cluster in clusters if cluster not in new_cluster]
-            new_clusters.append([new_cluster[0][0], new_cluster[1][0], len(new_clusters)])
+                    difference = _linkage_function(cluster_a[0], cluster_b[0])
+
+                    if min_difference is None or difference < min_difference:
+
+                        min_difference = difference
+                        clusters_to_merge = (cluster_a, cluster_b)
+
+            # Merge clusters
+            new_clusters = [cluster for cluster in clusters if cluster not in clusters_to_merge]
+            new_clusters.append((clusters_to_merge[0][0] + clusters_to_merge[1][0], len(new_clusters) + 1))
 
             # Recalculate cluster labels
-            new_clusters = [(*cluster[:-1], i) for i, cluster in enumerate(new_clusters)]
-
-            print(new_clusters)
-
-            input()
+            new_clusters = [(cluster[0], enum) for enum, cluster in enumerate(new_clusters)]
 
             # Exit the generator if the clusters have stabilized
             if new_clusters == clusters:
-                raise GeneratorExit()
+                raise StopIteration
 
             # Exit the generator if agglomeration has split X into n_clusters
-            if len(clusters) == n_clusters:
-                raise GeneratorExit()
+            if len(new_clusters) + 1 == n_clusters:
+                raise StopIteration
 
-            yield clusters
+            # Fit label to original input order
+            labels = []
+            for x in X:
+                [labels.append(cluster[1]) for cluster in new_clusters if x in cluster[0]]
 
-h = HAC()
-print(list(h.predict([1, 2, 3, 4], 2)))
+            clusters = new_clusters
+            yield labels
+
+
+if __name__ == "__main__":
+    """ Run example """
+    h = HAC()
+    for enum, step in enumerate(h.predict(X=[1, 2, 3, 4, 5, 6, 7, 8,8, 9, 10], n_clusters=4, linkage="single")):
+        print("Step: {enum}\nData:   {data}\nLabels: {labels}\n".format(enum=enum, data=[1, 2, 3, 4, 5, 6, 7, 8,8, 9, 10], labels=step))
+
+    print("Linkage used: single")
