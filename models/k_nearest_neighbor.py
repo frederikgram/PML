@@ -5,7 +5,7 @@ from tools import distances
 from models import base_models
 
 
-class k_nearest_neighbor(base_models.Classifier):
+class KNearestNeighbor(base_models.Classifier):
     """ K-nearest neighbors ML model"""
 
     def __init__(self):
@@ -30,7 +30,7 @@ class k_nearest_neighbor(base_models.Classifier):
 
         self.data = list(zip(X, y))
 
-    def predict(self, X: list or float, k: int = None, distance_metric: str="euclidian"):
+    def predict(self, X: float, k: int = None, distance_metric: str="euclidian"):
         """
 
         :param X: List of data

@@ -3,7 +3,7 @@ import numpy as np
 import random
 
 
-class k_means(base_models.Cluster):
+class Kmeans(base_models.Cluster):
     """ K-means ML Model"""
 
     @staticmethod
@@ -28,9 +28,9 @@ class k_means(base_models.Cluster):
             knn.fit(centroids, range(0, n_clusters))
 
             X_without_centroids = [x for x in X if x not in centroids]
-            predictions: list[int] = [knn.predict(x, k=1) for x in X_without_centroids]
+            _predictions: list[int] = [knn.predict(x, k=1) for x in X_without_centroids]
 
-            X_with_predictions: list[tuple] = zip(X_without_centroids, predictions)
+            X_with_predictions: list[tuple] = zip(X_without_centroids, _predictions)
 
             # Calculate new centroids
             new_centroids = []
@@ -54,7 +54,7 @@ class k_means(base_models.Cluster):
 if __name__ == "__main__":
     """ Run test """
 
-    model = k_means()
+    model = Kmeans()
     X = [1.0, 2.0, 3.0, 10.0, 11.0, 12.0, 20.0, 21.0, 22.0]
     predictions = model.predict(X, 3, random_seed=3)
     print(predictions)

@@ -2,7 +2,7 @@ from models import base_models
 from tools import distances
 
 
-class Hierarchical_clustering(base_models.Cluster):
+class HierarchicalClustering(base_models.Cluster):
     """ Base model for Hierarchical clustering ML models"""
 
     def __init__(self):
@@ -19,7 +19,18 @@ class Hierarchical_clustering(base_models.Cluster):
         :param a: List of cluster values
         :param b: List of cluster values
         """
-        pass
+
+        min_distance = None
+
+        for point_a in a:
+            for point_b in b:
+
+                difference = point_a - point_b
+
+                if difference < min_distance or min_distance is None:
+                    min_distance = difference
+
+        return min_distance
 
     @staticmethod
     def average_linkage_distance(a: list, b: list) -> float:
@@ -28,7 +39,11 @@ class Hierarchical_clustering(base_models.Cluster):
         :param a: List of cluster values
         :param b: List of cluster values
         """
-        pass
+
+        if len(a) != len(b):
+            raise ValueError("Lists have to be of equal length")
+
+        return sum(a) - sum(b) / len(a)
 
     @staticmethod
     def complete_linkage_distance(a: list, b: list) -> float:
@@ -37,10 +52,21 @@ class Hierarchical_clustering(base_models.Cluster):
         :param a: List of cluster values
         :param b: List of cluster values
         """
-        pass
+
+        max_distance = None
+
+        for point_a in a:
+            for point_b in b:
+
+                difference = point_a - point_b
+
+                if max_distance is None or difference > max_distance:
+                    max_distance = difference
+
+        return max_distance
 
 
-class HAC(Hierarchical_clustering):
+class HAC(HierarchicalClustering):
     """ Hierarchical agglomerative clustering ML model"""
 
     def predict(self, X: list, n_clusters: int, linkage: str="average") -> list:
@@ -67,14 +93,33 @@ class HAC(Hierarchical_clustering):
 
         # Begin agglomeration
         while True:
-            new_clusters: list[tuple] = []
 
-            min_distance = None
-            for cluster in clusters:
-                min_distance = min([_linkage_function(cluster, cluster_b) ffor cluster_b in clusetsrs])
+            min_difference = None
+            new_cluster = None
 
-            # Exit the generator if the agglomeration is done
+            for cluster_a in clusters:
+                for cluster_b in [cluster for cluster in clusters if cluster != cluster_a]:
+                    difference = _linkage_function(cluster_a, cluster_b)
+                    if min_difference is None or difference < min_difference:
+                        min_difference = difference
+                        new_cluster = (cluster_a, cluster_b)
+
+            new_clusters = [cluster for cluster in clusters if cluster not in new_cluster]
+            new_clusters.append([new_cluster[0][0], new_cluster[1][0], len(new_clusters)])
+
+            # Recalculate cluster labels
+            new_clusters = [(*cluster[:-1], i) for i, cluster in enumerate(new_clusters)]
+
+            print(new_clusters)
+
+            input()
+
+            # Exit the generator if the clusters have stabilized
             if new_clusters == clusters:
+                raise GeneratorExit()
+
+            # Exit the generator if agglomeration has split X into n_clusters
+            if len(clusters) == n_clusters:
                 raise GeneratorExit()
 
             yield clusters
