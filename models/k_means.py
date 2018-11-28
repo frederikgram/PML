@@ -35,6 +35,8 @@ class k_means(base_models.Cluster):
             # Calculate new centroids
             new_centroids = []
             for enum, centroid in enumerate(centroids):
+
+                # find the mean of cluster[enum]
                 mean = float(np.mean([x[0] for x in X_with_predictions if x[1] == enum] + [centroid]))
                 new_centroids.append(mean)
 
@@ -44,7 +46,7 @@ class k_means(base_models.Cluster):
 
             centroids = new_centroids
 
-        # predict cluster labels using stabilized centroids
+        # Predict cluster labels using stabilized centroids
         cluster_predictions: list[int] = [knn.predict(x) for x in X]
         return cluster_predictions
 

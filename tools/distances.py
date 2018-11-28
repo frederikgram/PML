@@ -7,3 +7,4 @@ def euclidian(a: float, b: float) -> float:
     return np.linalg.norm(a - b)
 
 
+distance_function_table = {"euclidian": euclidian}
