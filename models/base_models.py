@@ -16,25 +16,6 @@ class Model:
 
         return test_X, train_X, test_y, train_y
 
-    @staticmethod
-    def visualize2D(X: list, y: list, colors: list=None) -> None:
-        """ Visualize 2D data using matplotlib
-        :param X: List of data
-        :param y: List of labels
-        :param colors: List of RGB tuples to apply to data points
-        """
-
-        try:
-            import matplotlib.pyplot as plt
-        except ImportError:
-            print("Cannot import matplotlib")
-            raise
-
-        fig, ax = plt.subplots()
-        ax.scatter(X, y, c=colors)
-
-        plt.show()
-
 
 class Classifier(Model):
     """ Classifier type machine learning models"""

@@ -7,11 +7,13 @@ class Kmeans(base_models.Cluster):
     """ K-means ML Model"""
 
     @staticmethod
-    def predict(X: list, n_clusters: int, random_seed=None) -> list:
+    def predict(X: list, n_clusters: int, random_seed=None, **kwargs) -> list:
         """ Splits data into clusters using k-nearest neighbors
         :param X: List of data
         :param n_clusters: Amount of clusters to split the data into
         :param random_seed: Set a seed for the randomizer to allow for deterministic results
+
+        **kwargs: Sends **kwargs to the K-NearestNeighbors Model
         :return: List of labels (Cluster label as int)
         """
 
@@ -19,7 +21,7 @@ class Kmeans(base_models.Cluster):
             try:
                 random.seed = random_seed
             except TypeError:
-                print("{seed} is not a valid random.seed seed".format(seed=random_seed))
+                print("{seed} cannot be used as a random.seed()".format(seed=random_seed))
                 raise
 
         knn = k_nearest_neighbor.KNearestNeighbor()
@@ -32,7 +34,7 @@ class Kmeans(base_models.Cluster):
             knn.fit(centroids, range(0, n_clusters))
 
             X_without_centroids = [x for x in X if x not in centroids]
-            _predictions: list[int] = [knn.predict(x, k=1) for x in X_without_centroids]
+            _predictions: list[int] = [knn.predict(x, k=1, **kwargs) for x in X_without_centroids]
 
             X_with_predictions: list[tuple] = zip(X_without_centroids, _predictions)
 
@@ -41,17 +43,17 @@ class Kmeans(base_models.Cluster):
             for enum, centroid in enumerate(centroids):
 
                 # find the mean of cluster[enum]
-                mean = float(np.mean([x[0] for x in X_with_predictions if x[1] == enum] + [centroid]))
+                mean = np.mean([x[0] for x in X_with_predictions if x[1] == enum] + [centroid])
                 new_centroids.append(mean)
 
             # Check if centroids have stabilized
             if new_centroids == centroids:
                 break
-
-            centroids = new_centroids
+            else:
+                centroids = new_centroids
 
         # Predict cluster labels using stabilized centroids
-        cluster_predictions: list[int] = [knn.predict(x) for x in X]
+        cluster_predictions: list[int] = [knn.predict(x, k=1, **kwargs) for x in X]
         return cluster_predictions
 
 
@@ -60,5 +62,5 @@ if __name__ == "__main__":
 
     model = Kmeans()
     X = [1.0, 2.0, 3.0, 10.0, 11.0, 12.0, 20.0, 21.0, 22.0]
-    predictions = model.predict(X, 3, random_seed=3)
+    predictions = model.predict(X, 3, random_seed=9999, distance_metric=lambda a, b: abs(a - b))
     print(predictions)
