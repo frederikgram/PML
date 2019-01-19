@@ -1,7 +1,10 @@
-from collections import Counter
+""" Simple Python implementation of a K-Nearest Neighbors classification model """
+
 import operator
 
+from collections import Counter
 from models import base_models
+from typing import List, NoReturn
 
 
 class KNearestNeighbor(base_models.Classifier):
@@ -12,24 +15,13 @@ class KNearestNeighbor(base_models.Classifier):
 
         self.data = None
 
-    def fit(self, X: list, y: list) -> None:
+    def fit(self, X: List, y: List) -> NoReturn:
+        self.data = zip(X, y)
+
+    def predict(self, X: float, k: int = None):
         """
-
-        :param X: List of data
-        :param y: List of labels
-        :return: No return, sets state of self.data to list(zip(X, y))
-        """
-
-        if len(X) != len(y):
-            raise ValueError("X and y has to be the same length")
-
-        self.data = list(zip(X, y))
-
-    def predict(self, X: float, k: int = None, distance_metric=lambda a, b: abs(a - b)):
-        """
-        :param X: List of data
-        :param k: List of labels
-        :param distance_metric: Type of distance calculation to use
+        :param X: data to predict a label for as a float
+        :param k: How many neighbors to look at
         :return: Predicted label for X
         """
 
@@ -41,15 +33,13 @@ class KNearestNeighbor(base_models.Classifier):
         if k is None:
             k = len(set([label[1] for label in self.data])) + 1
 
-        try:
-            # Find k neighbors sorted by distance from low to high
-            neighbors = sorted(self.data, key=lambda a: distance_metric(a[0], X))[:k]
-        except TypeError:
-            print("Distance calculations are not supported for type {}".format(type(X)))
-            raise
+        # Sort Neighbors by distance
+        neighbors = sorted(self.data, key=lambda a: abs(a - X))[:k]
 
         # Count the most common label in neighbors
         counted_labels = Counter([label[1] for label in neighbors])
+
+        # Return the label with the most presence in the set of neighbors
         return max(counted_labels.items(), key=operator.itemgetter(1))[0]
 
 

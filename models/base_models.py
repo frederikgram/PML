@@ -1,10 +1,14 @@
+""" Collection of Base models to build inheritance models on """
+
+from typing import List
+
+
 class Model:
     """Base class for ML models, this contains various functions with wide use cases"""
 
     @staticmethod
-    def test_train_split(X: list, y: list, ratio: float=0.8) -> list:
+    def test_train_split(X: List, y: List, ratio: float = 0.8) -> List:
         """
-
         :param X: List of data
         :param y: List of labels
         :param ratio: Split percentage as a float, 0.8 would give 80% train, 20% test from the original data set
